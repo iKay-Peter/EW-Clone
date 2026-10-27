@@ -1,0 +1,28 @@
+# Build output
+bin/
+obj/
+TestResults/
+artifacts/
+publish/
+
+# IDE and user files
+.vs/
+.idea/
+*.user
+*.suo
+*.userossc
+*.sln.docstates
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Local databases and runtime logs
+*.db
+*.db-wal
+*.db-shm
+*.log
+
+# Machine-local reverse-engineering captures
+research/stage3/*.png

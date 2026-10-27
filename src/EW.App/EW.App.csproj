@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>EW.App</RootNamespace>
+    <AssemblyName>EWClone</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyTitle>EW Clone</AssemblyTitle>
+    <Product>EW Clone</Product>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EW.Application\EW.Application.csproj" />
+    <ProjectReference Include="..\EW.Data\EW.Data.csproj" />
+    <ProjectReference Include="..\EW.Infrastructure\EW.Infrastructure.csproj" />
+    <ProjectReference Include="..\EW.Media\EW.Media.csproj" />
+    <ProjectReference Include="..\EW.Output\EW.Output.csproj" />
+    <ProjectReference Include="..\EW.Platform\EW.Platform.csproj" />
+    <ProjectReference Include="..\EW.Rendering\EW.Rendering.csproj" />
+  </ItemGroup>
+
+</Project>

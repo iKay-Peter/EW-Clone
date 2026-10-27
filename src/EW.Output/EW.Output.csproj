@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>EW.Output</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EW.Domain\EW.Domain.csproj" />
+    <ProjectReference Include="..\EW.Rendering\EW.Rendering.csproj" />
+  </ItemGroup>
+
+</Project>

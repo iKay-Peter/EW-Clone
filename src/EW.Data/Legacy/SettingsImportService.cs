@@ -10,23 +10,37 @@ public sealed class SettingsImportService(SqliteDatabase database)
     public SettingsImportResult Import(LegacyIniFile file)
     {
         ArgumentNullException.ThrowIfNull(file);
+        return Import([file]);
+    }
 
-        var sourceFile = Path.GetFileName(file.SourcePath);
+    public SettingsImportResult Import(IReadOnlyList<LegacyIniFile> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
+
         var imported = new List<(string Key, Setting Setting)>();
         var seen = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var warnings = new List<string>();
 
-        foreach (var legacySetting in file.Settings)
+        foreach (var file in files)
         {
-            var key = $"{sourceFile}/{legacySetting.Section}/{legacySetting.Key}";
-            if (seen.TryGetValue(key, out var index))
+            var sourceFile = Path.GetFileName(file.SourcePath);
+            foreach (var legacySetting in file.Settings)
             {
-                imported[index] = (key, Map(file, legacySetting, key));
+                var key = $"{sourceFile}/{legacySetting.Section}/{legacySetting.Key}";
+                if (seen.TryGetValue(key, out var index))
+                {
+                    imported[index] = (key, Map(file, legacySetting, key));
+                }
+                else
+                {
+                    seen[key] = imported.Count;
+                    imported.Add((key, Map(file, legacySetting, key)));
+                }
             }
-            else
-            {
-                seen[key] = imported.Count;
-                imported.Add((key, Map(file, legacySetting, key)));
-            }
+
+            warnings.AddRange(files.Count == 1
+                ? file.Warnings
+                : file.Warnings.Select(warning => $"{sourceFile}: {warning}"));
         }
 
         var created = 0;
@@ -52,7 +66,7 @@ public sealed class SettingsImportService(SqliteDatabase database)
 
         transaction.Commit();
 
-        return new SettingsImportResult(created, updated, keys, file.Warnings);
+        return new SettingsImportResult(created, updated, keys, warnings);
     }
 
     private static Setting Map(LegacyIniFile file, LegacyIniSetting legacySetting, string key)

@@ -1,7 +1,7 @@
 # Stage 4 Implementation Plan
 
 Status: Stage 4 planning deliverable; Stage 5 M1 complete, M2 in progress  
-Last updated: 2026-10-27  
+Last updated: 2026-10-28  
 Baseline: EasyWorship 7.4.0.7 on Windows  
 Architecture: `research/reconstruction-design.md`  
 Inputs: `research/feature-matrix.md`, `research/behavioural-specification.md`, `research/architecture-findings.md`, `research/known-unknowns.md`, `research/test-cases.md`
@@ -12,8 +12,8 @@ Inputs: `research/feature-matrix.md`, `research/behavioural-specification.md`, `
 |---|---|---|
 | M0 prerequisites | Partial | .NET 8.0.301 pinned; build/restore/WPF launch verified. FFmpeg and oracle-capture decisions remain. |
 | M1 solution scaffold | Complete | `EasyWorshipClone.sln`, 9 source projects, 8 test projects, DI/logging/settings shell, architecture tests, build scripts. Build has 0 warnings; 21 tests pass; shell launches and exits 0. |
-| M2 data foundation | Partial | Clone schema v4 + migration runner, 19 core tables + 5 FTS5 tables, provisional `UTF8_U_CI` registration, profile/song/presentation/resource/media/theme/service-interval/setting repositories, read-only song, presentation graph, media, theme, and service-interval readers, `.ewsx`/`.ewtx` main.db and media extraction, extracted-media registration, presentation-resource media linking, RTF parsing and slide splitting, legacy INI settings parsing/import validated against 7 observed files (194 settings imported, 0 warnings; second pass updated 194), raw sidecar preservation, theme graph preservation, idempotent imports by legacy UID, song/media/presentation/theme FTS, transactional rollback, hash-verified backups with SQLite integrity checks, and synthetic fixtures. Build 0 warnings; 71 tests pass. Remaining: Bible import, settings import wiring, and unified import reporting. |
-| M3 operator shell | Partial | Main window, library tabs, imports, selection, preview/live panes, Go Live/next/previous/black/clear commands, and ListBox accessibility are implemented and manually smoke-tested. Search/sort breadth, window persistence, central hotkeys, and FlaUI smoke tests remain. |
+| M2 data foundation | Partial | Clone schema v4 + migration runner, 19 core tables + 5 FTS5 tables, provisional `UTF8_U_CI` registration, profile/song/presentation/resource/media/theme/service-interval/setting repositories, read-only song, presentation graph, media, theme, and service-interval readers, `.ewsx`/`.ewtx` main.db and media extraction, extracted-media registration, presentation-resource media linking, RTF parsing and slide splitting, legacy INI settings parsing/import validated against 7 observed files (194 settings imported, 0 warnings; second pass updated 194), atomic multi-file settings import exposed in the UI, raw sidecar preservation, theme graph preservation, idempotent imports by legacy UID, song/media/presentation/theme FTS, transactional rollback, hash-verified backups with SQLite integrity checks, and synthetic fixtures. Build 0 warnings; 73 tests pass. Remaining: Bible import, one-step profile settings discovery, and unified import reporting. |
+| M3 operator shell | Partial | Main window, library tabs including Settings, imports, selection, preview/live panes, Go Live/next/previous/black/clear commands, and ListBox accessibility are implemented and manually smoke-tested. Search/sort breadth, window persistence, central hotkeys, and FlaUI smoke tests remain. |
 
 ## 1. Purpose
 
@@ -468,7 +468,7 @@ The actual commands must be recorded in `AGENTS.md` once the solution exists.
 1. Create the synthetic fixture specification and first fixture files.
 2. Resolve the FFmpeg LGPL build and notices before M7.
 3. Define the D3D-aware oracle capture method before visual-fidelity claims.
-4. Wire the legacy INI settings importer into profile import and surface its warnings.
+4. Add one-step profile settings discovery across the global and per-user settings folders.
 5. Add read-only legacy readers for Bible metadata.
 6. Add unified import reporting and close the remaining M2 checklist.
 7. Keep the M2 import boundary read-only and transactional.
@@ -499,6 +499,7 @@ The actual commands must be recorded in `AGENTS.md` once the solution exists.
 | 2026-10-26 | Extracted archive media registered as `MediaAsset` rows using content SHA-256 identity, idempotent upsert, media FTS, and archive/entry metadata | Complete for registration; presentation resource rows are not yet linked to these assets. |
 | 2026-10-26 | Presentation image/video/audio/PowerPoint resources enriched with `file` metadata and linked to `MediaAsset` by SHA-256 during import | Complete when archive media is registered first; missing media preserves hash/filename metadata and leaves the link null. Hash matching is case-insensitive because archive hashes are lowercase. |
 | 2026-10-27 | Legacy RTF splits on `\sdslidemarker` paragraph groups for marker songs and on blank paragraphs otherwise; empty marker segments are preserved as blank slides | Complete. Reimport produced 433 songs and 2,629 slides (423 multi-slide). Only `A Mighty Fortress Is Our God` still differs: 6 text slides versus 4 `slide_uids`. Section labels remain undecoded. |
-| 2026-10-27 | Added `SettingRepository` plus BOM-aware legacy INI reader/import with source metadata, duplicate-key warnings, and transactional last-value-wins behavior | Complete for INI files; all 7 observed files imported into the clone (194 settings, 0 warnings; second pass updated 194). Settings import is not yet exposed in the UI or profile-import command, and DB-backed settings remain unimplemented. |
+| 2026-10-27 | Added `SettingRepository` plus BOM-aware legacy INI reader/import with source metadata, duplicate-key warnings, and transactional last-value-wins behavior | Complete for INI files; all 7 observed files imported into the clone (194 settings, 0 warnings; second pass updated 194). DB-backed settings remain unimplemented. |
 | 2026-10-27 | Populated `PresentationFts` on every presentation upsert and re-import | Complete; presentation search UI still filters loaded items in memory. |
 | 2026-10-27 | Domain records overriding `ToString()` so WPF ListBox items expose meaningful UIA names | Complete; songs, media, presentations, themes, and service intervals are covered. |
+| 2026-10-28 | Exposed settings import as `File > Import Settings...` with multi-file selection, atomic batch commit/rollback, warning counts, a read-only Settings tab, and a settings count in the status bar | Complete; one-step discovery of the standard global and per-user settings folders remains. |

@@ -19,6 +19,7 @@
         <MenuItem Header="Import _Presentations..." Command="{Binding ImportPresentationsCommand}" />
         <MenuItem Header="Import _Theme..." Command="{Binding ImportThemeCommand}" />
         <MenuItem Header="Import Service _Intervals..." Command="{Binding ImportServiceIntervalsCommand}" />
+        <MenuItem Header="Import Settings..." Command="{Binding ImportSettingsCommand}" />
         <Separator />
         <MenuItem Header="Open Data Folder" Command="{Binding OpenDataFolderCommand}" />
         <Separator />
@@ -225,6 +226,23 @@
                       <TextBlock Foreground="{StaticResource MutedTextBrush}"
                                  Text="{Binding SourcePath}"
                                  TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </TabItem>
+            <TabItem Header="Settings">
+              <ListBox ItemsSource="{Binding Settings}"
+                       HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Margin="0,3">
+                      <TextBlock FontWeight="SemiBold"
+                                 Text="{Binding Key}"
+                                 TextWrapping="Wrap" />
+                      <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                 Text="{Binding Value}"
+                                 TextWrapping="Wrap" />
                     </StackPanel>
                   </DataTemplate>
                 </ListBox.ItemTemplate>

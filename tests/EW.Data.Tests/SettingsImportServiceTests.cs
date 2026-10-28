@@ -8,6 +8,7 @@ public sealed class SettingsImportServiceTests : IDisposable
 {
     private readonly string _root;
     private readonly string _settingsPath;
+    private readonly string _moreSettingsPath;
     private readonly SqliteDatabase _database;
     private readonly SettingRepository _repository;
     private readonly SettingsImportService _service;
@@ -27,6 +28,14 @@ public sealed class SettingsImportServiceTests : IDisposable
 
             [Beta]
             Key=three
+            """,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        _moreSettingsPath = Path.Combine(_root, "More.ini");
+        File.WriteAllText(
+            _moreSettingsPath,
+            """
+            [Gamma]
+            Key=four
             """,
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
 
@@ -87,6 +96,57 @@ public sealed class SettingsImportServiceTests : IDisposable
         var file = LegacyIniFileReader.Read(_settingsPath);
 
         Assert.Throws<SqliteException>(() => _service.Import(file));
+        Assert.Empty(_repository.List());
+    }
+
+    [Fact]
+    public void BatchImportIsIdempotentAcrossFiles()
+    {
+        var files = new[]
+        {
+            LegacyIniFileReader.Read(_settingsPath),
+            LegacyIniFileReader.Read(_moreSettingsPath),
+        };
+
+        var first = _service.Import(files);
+
+        Assert.Equal(4, first.Created);
+        Assert.Equal(0, first.Updated);
+        Assert.Equal(4, _repository.List().Count);
+        Assert.Contains(
+            first.Warnings,
+            warning => warning.StartsWith("Sample.ini: Duplicate key", StringComparison.Ordinal));
+
+        var second = _service.Import(files);
+
+        Assert.Equal(0, second.Created);
+        Assert.Equal(4, second.Updated);
+        Assert.Equal(4, _repository.List().Count);
+    }
+
+    [Fact]
+    public void FailedBatchImportRollsBackWritesFromAllFiles()
+    {
+        using (var connection = _database.OpenConnection())
+        {
+            using var trigger = connection.CreateCommand();
+            trigger.CommandText = """
+                CREATE TRIGGER FailSettingsImport
+                BEFORE INSERT ON Setting
+                BEGIN
+                    SELECT RAISE(ABORT, 'blocked by test');
+                END;
+                """;
+            trigger.ExecuteNonQuery();
+        }
+
+        var files = new[]
+        {
+            LegacyIniFileReader.Read(_settingsPath),
+            LegacyIniFileReader.Read(_moreSettingsPath),
+        };
+
+        Assert.Throws<SqliteException>(() => _service.Import(files));
         Assert.Empty(_repository.List());
     }
 

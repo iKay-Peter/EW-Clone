@@ -1,7 +1,7 @@
 # EW Clone - Project Status
 
 Status: Stage 4 planning complete; Stage 5 M1 complete, M2 and M3 partially complete  
-Last updated: 2026-10-27  
+Last updated: 2026-10-28  
 Baseline: EasyWorship 7.4.0.7 on Windows  
 Repository: https://github.com/iKay-Peter/EW-Clone.git
 
@@ -196,6 +196,11 @@ The app must be launched through Explorer for interactive smoke tests;
 - Settings keys use `<filename>/<section>/<key>`.
 - Import metadata includes source file, full path, SHA-256, section, key, line
   number, and raw line.
+- `SettingsImportService` supports atomic multi-file batches, so all selected
+  INI files commit or roll back together.
+- Added `File > Import Settings...` with multi-file selection, warning counts,
+  and a read-only Settings tab in the operator shell.
+- Library status now reports the imported settings count.
 
 ### 4.10 Stage 5 M2 - Search indexes
 
@@ -211,8 +216,8 @@ The app must be launched through Explorer for interactive smoke tests;
 
 - Implemented the main window with menus, toolbar, status bar, library tabs,
   preview pane, live pane, and output pane.
-- Implemented library tabs for songs, media, presentations, themes, and
-  scriptures.
+- Implemented library tabs for songs, media, presentations, themes, scriptures,
+  and settings.
 - Implemented import commands for the currently supported legacy formats.
 - Implemented selection and preview/live display.
 - Implemented Go Live, Next, Previous, Black, and Clear controls.
@@ -259,19 +264,19 @@ Observed legacy imports:
 Current solution state:
 
 - Build: zero warnings under the repository warning policy.
-- Tests: 71 passing across all projects.
+- Tests: 73 passing across all projects.
 
 | Test project | Passing |
 |---|---|
 | EW.Domain.Tests | 4 |
-| EW.Data.Tests | 51 |
+| EW.Data.Tests | 53 |
 | EW.Rendering.Tests | 1 |
 | EW.Application.Tests | 1 |
 | EW.Import.Tests | 1 |
 | EW.PerformanceTests | 1 |
 | EW.UiTests | 1 |
 | EW.IntegrationTests | 11 |
-| **Total** | **71** |
+| **Total** | **73** |
 
 Covered by tests:
 
@@ -281,7 +286,7 @@ Covered by tests:
 - Song, media, presentation, theme, service-interval, and settings import.
 - Source hash preservation.
 - Idempotent re-import.
-- Transactional rollback.
+- Transactional rollback, including multi-file settings batches.
 - Archive extraction and media registration.
 - Presentation-to-media hash linking.
 - RTF parsing, ignorable destinations, marker splitting, and blank slides.
@@ -334,7 +339,8 @@ Not covered yet:
 ### 8.2 M2 - Data foundation
 
 - Add read-only Bible metadata and public-domain translation import.
-- Wire the settings importer into profile import and surface warnings in the UI.
+- Add one-step profile settings discovery instead of manual multi-file
+  selection across the global and per-user settings folders.
 - Add unified import reporting across songs, media, presentations, themes,
   service intervals, and settings.
 - Close the remaining M2 checklist and update the plan/status document.
@@ -423,8 +429,9 @@ Not covered yet:
 
 ## 9. Immediate next actions
 
-1. Wire the settings importer into profile import and show its warnings.
-2. Add read-only Bible metadata support and a public-domain fixture.
+1. Add read-only Bible metadata support and a public-domain fixture.
+2. Add one-step profile settings discovery across the global and per-user
+   settings folders.
 3. Add unified import reporting and close the remaining M2 checklist.
 4. Finish M3 search/sort, persistence, hotkeys, and FlaUI smoke tests.
 5. Resolve the FFmpeg LGPL build and notices before M7.

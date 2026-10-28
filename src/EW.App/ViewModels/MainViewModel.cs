@@ -9,6 +9,7 @@ using EW.Data.Legacy;
 using EW.Domain.Media;
 using EW.Domain.Presentations;
 using EW.Domain.Scheduling;
+using EW.Domain.Settings;
 using EW.Domain.Songs;
 using EW.Domain.Themes;
 using EW.Infrastructure;
@@ -25,11 +26,13 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly PresentationRepository _presentationRepository;
     private readonly ThemeRepository _themeRepository;
     private readonly ServiceIntervalRepository _serviceIntervalRepository;
+    private readonly SettingRepository _settingRepository;
     private readonly SongImportService _songImportService;
     private readonly MediaImportService _mediaImportService;
     private readonly PresentationImportService _presentationImportService;
     private readonly ThemeImportService _themeImportService;
     private readonly ServiceIntervalImportService _serviceIntervalImportService;
+    private readonly SettingsImportService _settingsImportService;
     private readonly ILogger<MainViewModel> _logger;
 
     private string _activeTitle = "Preview";
@@ -46,11 +49,13 @@ public sealed partial class MainViewModel : ObservableObject
         PresentationRepository presentationRepository,
         ThemeRepository themeRepository,
         ServiceIntervalRepository serviceIntervalRepository,
+        SettingRepository settingRepository,
         SongImportService songImportService,
         MediaImportService mediaImportService,
         PresentationImportService presentationImportService,
         ThemeImportService themeImportService,
         ServiceIntervalImportService serviceIntervalImportService,
+        SettingsImportService settingsImportService,
         ILogger<MainViewModel> logger)
     {
         ArgumentNullException.ThrowIfNull(paths);
@@ -61,11 +66,13 @@ public sealed partial class MainViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(presentationRepository);
         ArgumentNullException.ThrowIfNull(themeRepository);
         ArgumentNullException.ThrowIfNull(serviceIntervalRepository);
+        ArgumentNullException.ThrowIfNull(settingRepository);
         ArgumentNullException.ThrowIfNull(songImportService);
         ArgumentNullException.ThrowIfNull(mediaImportService);
         ArgumentNullException.ThrowIfNull(presentationImportService);
         ArgumentNullException.ThrowIfNull(themeImportService);
         ArgumentNullException.ThrowIfNull(serviceIntervalImportService);
+        ArgumentNullException.ThrowIfNull(settingsImportService);
         ArgumentNullException.ThrowIfNull(logger);
 
         _songRepository = songRepository;
@@ -73,11 +80,13 @@ public sealed partial class MainViewModel : ObservableObject
         _presentationRepository = presentationRepository;
         _themeRepository = themeRepository;
         _serviceIntervalRepository = serviceIntervalRepository;
+        _settingRepository = settingRepository;
         _songImportService = songImportService;
         _mediaImportService = mediaImportService;
         _presentationImportService = presentationImportService;
         _themeImportService = themeImportService;
         _serviceIntervalImportService = serviceIntervalImportService;
+        _settingsImportService = settingsImportService;
         _logger = logger;
 
         ProfileName = string.IsNullOrWhiteSpace(options.Value.ProfileName)
@@ -110,6 +119,8 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<Theme> Themes { get; } = [];
 
     public ObservableCollection<ServiceInterval> ServiceIntervals { get; } = [];
+
+    public ObservableCollection<Setting> Settings { get; } = [];
 
     [ObservableProperty]
     private string _status = "Ready";
@@ -319,6 +330,31 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task ImportSettingsAsync()
+    {
+        var dialog = CreateDialog(
+            "Select EasyWorship settings files",
+            "EasyWorship settings (*.ini)|*.ini|All files (*.*)|*.*",
+            multiselect: true);
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        var paths = dialog.FileNames;
+        await RunImportAsync(
+            "settings",
+            () =>
+            {
+                var files = paths
+                    .Select(LegacyIniFileReader.Read)
+                    .ToArray();
+                var result = _settingsImportService.Import(files);
+                return $"Settings imported from {files.Length} file(s): {result.Created} new, {result.Updated} updated, {result.Warnings.Count} warning(s).";
+            });
+    }
+
+    [RelayCommand]
     private void GoLive()
     {
         if (SelectedSong is not null)
@@ -441,10 +477,11 @@ public sealed partial class MainViewModel : ObservableObject
         Replace(Presentations, _presentationRepository.List());
         Replace(Themes, _themeRepository.List());
         Replace(ServiceIntervals, _serviceIntervalRepository.List());
+        Replace(Settings, _settingRepository.List());
 
         LibrarySummary =
             $"Songs {Songs.Count} | Media {Media.Count} | Presentations {Presentations.Count} | " +
-            $"Themes {Themes.Count} | Service intervals {ServiceIntervals.Count}";
+            $"Themes {Themes.Count} | Service intervals {ServiceIntervals.Count} | Settings {Settings.Count}";
     }
 
     private void ShowPreview(string title, string text)
@@ -492,13 +529,16 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    private static OpenFileDialog CreateDialog(string title, string filter) =>
+    private static OpenFileDialog CreateDialog(
+        string title,
+        string filter,
+        bool multiselect = false) =>
         new()
         {
             Title = title,
             Filter = filter,
             CheckFileExists = true,
-            Multiselect = false,
+            Multiselect = multiselect,
         };
 
     private static void ShowError(string message) =>
